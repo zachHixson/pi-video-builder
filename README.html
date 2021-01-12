@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Pi Video Builder README</title>
+        <style>
+            * {
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            h2 {
+                background: #F0A87F;
+            }
+
+            .code{
+                background: #73AFF0;
+                padding: 3px;
+                border-radius: 5px;
+            }
+
+            li {
+                margin-bottom: 5px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Pi Video Builder</h1>
+        <p>This program is used to generate a video sequence of the digits of PI based on a series of input video and input text list</p>
+
+        <h2>Requirements</h2>
+        <ol>
+            <li>Windows 10 OS</li>
+            <li>32GB Ram (will work with less RAM, but will be much slower)</li>
+            <li>Make sure you have <a href="https://ffmpeg.org/">FFmpeg</a> installed and accessible from command line</li>
+            <li>Folder containing only <span class="code">.MP4</span> video clips for digits 0-9. Clips will be read in alphanumeric order (IE: First clip alphanumerically will be assumed to be the digit 0)</li>
+            <li>A <span class="code">.TXT</span> file containing digits of PI. PVB will automatically remove all non-numeric data</li>
+        </ol>
+
+        <h2>How to run</h2>
+        <ol>
+            <li>Place <span class="code">pi-video-builder.exe</span> into the root project directory</li>
+            <li>With the command line pointed to the project directory, run <span class="code">.\pi-video-exitor.exe [src_folder\path] [path\pi_text_file.txt] [path\to\output_folder]</span> (without [ ] braces)</li>
+        </ol>
+
+        <h2>Pausing, Resuming, and Restarting</h2>
+        If you want to pause the render, you can do so easily by:
+        <ol>
+            <li>Exiting out of the command prompt window</li>
+            <li>Deleting the most recent video output. If this is not deleted there will be an error on next render as it will not overwrite existing video.</li>
+            <li>To resume, simply run the same command you ran to originally run the program. PVB will re-start where it left off</li>
+            <li>WARNING: Do not delete <span class="code">log.txt</span> file. If this is deleted PVB will be unable to resume where it left off</li>
+        </ol>
+        If you would like to restart the process from scratch:
+        <ol>
+            <li>Delete all generated videos</li>
+            <li>Delete the <span class="code">log.txt</span> file from the program directory</li>
+            <li>Run the original command</li>
+        </ol>
+    </body>
+</html>
