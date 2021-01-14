@@ -17,15 +17,6 @@ This program is used to generate a video sequence of the digits of PI based on a
 
 ## Pausing, Resuming and Restarting
 
-If you want to pause the render, you can do so easily by: 
+If you want to pause the render, you can do so easily by exiting the command prompt window. The render will resume where it left off next time the program is run (as long as the output directory is the same)
 
-1. Exiting out of the command prompt window
-1. Deleting the most recent video output. If this is not deleted there will be an error on next render as it will not overwrite existing video.
-1. To resume, simply run the same command you ran to originally run the program. PVB will re-start where it left off
-1. **WARNING:** Do not delete `log.txt` file. If this is deleted PVB will be unable to resume where it left off
-
-If you would like to restart the process from scratch: 
-
-1. Delete all generated videos
-1. Delete the `log.txt` file from the program directory
-1. Run the original command
+If you would like to restart the process from scratch, simply delete the existing output directory or provide a new output directory to render to.

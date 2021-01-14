@@ -45,18 +45,8 @@
         </ol>
 
         <h2>Pausing, Resuming, and Restarting</h2>
-        If you want to pause the render, you can do so easily by:
-        <ol>
-            <li>Exiting out of the command prompt window</li>
-            <li>Deleting the most recent video output. If this is not deleted there will be an error on next render as it will not overwrite existing video.</li>
-            <li>To resume, simply run the same command you ran to originally run the program. PVB will re-start where it left off</li>
-            <li>WARNING: Do not delete <span class="code">log.txt</span> file. If this is deleted PVB will be unable to resume where it left off</li>
-        </ol>
-        If you would like to restart the process from scratch:
-        <ol>
-            <li>Delete all generated videos</li>
-            <li>Delete the <span class="code">log.txt</span> file from the program directory</li>
-            <li>Run the original command</li>
-        </ol>
+        If you want to pause the render, you can do so easily by exiting the command prompt window. The render will resume where it left off next time the program is run (as long as the output directory is the same)
+        <br /><br />
+        If you would like to restart the process from scratch, simply delete the existing output directory or provide a new output directory to render to.
     </body>
 </html>

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 func main(){
@@ -33,6 +34,11 @@ func scanClipDir() ([]int, []string){
 
 	clipDir := getAbsolutePath(os.Args[1])
 
+	if _, err := os.Stat(clipDir); os.IsNotExist(err) {
+		fmt.Println("ERROR: The source clip directory that was provided does not exists. Please check and try again")
+		os.Exit(1)
+	}
+
 	clipPathErr := filepath.Walk(clipDir, func(path string, info os.FileInfo, err error) error {
 		fi, _ := os.Stat(path)
 		fileSizes = append(fileSizes, int(fi.Size()))
@@ -51,12 +57,18 @@ func scanClipDir() ([]int, []string){
 func getPiDigits() string{
 	fmt.Println("Reading PI digits file")
 
-	rawText, err := ioutil.ReadFile(getAbsolutePath(os.Args[2]))
+	filePath := getAbsolutePath(os.Args[2])
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Println("ERROR: The path to the PI text file is invalid. Check path and try again")
+		os.Exit(1)
+	}
+
+	rawText, err := ioutil.ReadFile(filePath)
 	check(err)
 
 	returnString := regexp.MustCompile(`\s|3\.`).ReplaceAllString(string(rawText), "")
 	returnString = regexp.MustCompile(`\D`).ReplaceAllString(returnString, "")
-	fmt.Println(returnString)
 
 	return returnString
 }
@@ -66,20 +78,24 @@ func generateAllChunks(digits string, sizeArr []int, pathArr []string){
 
 	const CHUNKSIZE = 1300000000
 	digitLen := len(digits)
-	chunkNum, i := getLogData()
 	outDir := getAbsolutePath(os.Args[3]) + "\\"
+	i := getResumeDigit()
 
 	if _, err := os.Stat(outDir); os.IsNotExist(err) {
 		os.Mkdir(outDir, os.ModeDir)
 	}
 
+	if _, err := os.Stat(outDir + "temp.mp4"); !os.IsNotExist(err) {
+		fmt.Println("Clearing previous temp file")
+		_ = os.Remove(outDir + "temp.mp4")
+	}
+
 	for i < digitLen {
 		totalBytes := 0
+		startDigit := i + 1
 		digitChunk := ""
 		argClips := ""
 		argFilter := ""
-
-		writeLogFile(chunkNum, i)
 
 		//calculate and display percentage
 		perc := float32(i) / float32(len(digits)) * 100
@@ -93,6 +109,7 @@ func generateAllChunks(digits string, sizeArr []int, pathArr []string){
 		}
 
 		chunkLen := len(digitChunk)
+		endDigit := i
 
 		//fill in commands
 		for d := 0; d < chunkLen; d++ {
@@ -103,18 +120,22 @@ func generateAllChunks(digits string, sizeArr []int, pathArr []string){
 
 		//execute command
 		if len(argClips) > 0 && len(argFilter) > 0 {
+			outFileName := strconv.Itoa(startDigit) + "-" + strconv.Itoa(endDigit)
 			argStr := "ffmpeg " + argClips
 			argStr += "-filter_complex \"" + argFilter
 			argStr += "concat=n=" + strconv.Itoa(chunkLen)
-			argStr += ":v=1:a=1 [v] [a]\" -map \"[v]\" -map \"[a]\"" + outDir + strconv.Itoa(chunkNum) + ".mp4"
+			argStr += ":v=1:a=1 [v] [a]\" -map \"[v]\" -map \"[a]\"" + outDir + "temp.mp4"
 			pws := exec.Command("powershell", "/c", argStr)
 			//pws.Stdout = os.Stdout
 			//pws.Stderr = os.Stderr
 			err := pws.Run()
 
-			check(err)
-
-			chunkNum++
+			if err != nil {
+				fmt.Println("ERROR: Error combining chunk " + outFileName +  " with FFmpeg. Check source clips for corrupted files. If that does not resolve the issue, remove any temp.mp4 files and try again")
+				os.Exit(1)
+			} else {
+				os.Rename(outDir + "temp.mp4", outDir + outFileName + ".mp4")
+			}
 		}
 	}
 }
@@ -127,34 +148,34 @@ func getCharAsInt(str string, idx int) int{
 	return c
 }
 
-func getLogData() (int, int){
-	absPath := getAbsolutePath("log.txt")
+func getResumeDigit() int{
+	largestNum := 0
+	outPath := getAbsolutePath(os.Args[3])
 
-	if _, err := os.Stat(absPath); err == nil {
-		var valuesInt []int
-		rawText, err := ioutil.ReadFile(absPath)
-
-		check(err)
-
-		text := string(rawText)
-		valuesStr := regexp.MustCompile(`\d+`).FindAllString(text, -1)
-
-		for i := 0; i < len(valuesStr); i++ {
-			num, _ := strconv.Atoi(valuesStr[i])
-			valuesInt = append(valuesInt, num)
-		}
-
-		return valuesInt[0], valuesInt[1]
+	if _, err := os.Stat(outPath); os.IsNotExist(err) {
+		fmt.Println("No existing clips found, starting at digit 0")
+		return 0
 	}
 
-	return 0, 0
-}
+	clipPathErr := filepath.Walk(outPath, func(path string, info os.FileInfo, err error) error {
+		fileName := path[len(outPath):]
+		fileName = regexp.MustCompile(`\\|\.\w+`).ReplaceAllString(fileName, "")
+		nums := strings.Split(fileName, "-")
 
-func writeLogFile(chunkNum int, digit int){
-	str := strconv.Itoa(chunkNum) + "," + strconv.Itoa(digit)
-	bt := []byte(str)
-	err := ioutil.WriteFile("log.txt", bt, 0644)
-	check(err)
+		if len(nums) > 1 {
+			bigNum, err := strconv.Atoi(nums[1])
+
+			if err == nil && bigNum > largestNum{
+				largestNum = bigNum
+			}
+		}
+
+		return nil
+	})
+
+	check(clipPathErr)
+
+	return largestNum
 }
 
 func check(e error){
